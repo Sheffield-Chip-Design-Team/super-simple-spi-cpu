@@ -101,7 +101,7 @@ module tb ();
   wire miso;
   wire valid = uo_out[7];
 
-  always #10 clk = ~clk;
+  
   // Behavioural SPI RAM model (READ 0x03 only)
   spi_ram_model #(.MEM_BYTES(256)) ram (
       .cs_n (cs_n),
@@ -125,6 +125,15 @@ module tb ();
       rst_n = 1'b0;
       ena   = 1'b0;
       ui_in = 8'h00;
+      
+      #50;
+      rst_n = 1'b1;
+      ena   = 1'b1;
+  end
+  
+  always #10 clk = ~clk;
+  
+  initial begin
       // ram.mem[8'h00] = 8'b0001_0000; // LDB, LDA
       // ram.mem[8'h01] = 8'b0010_1010; // LDO, ADD
       // ram.mem[8'h02] = 8'b0010_1011; // LDO, SUB
@@ -133,8 +142,6 @@ module tb ();
       // ram.mem[8'h05] = 8'b0010_1000; // LDSB, SNZ A
       // ram.mem[8'h06] = 8'b0100_0010; // SNZ S, LSH
       // ram.mem[8'h07] = 8'b0111_0010; // CLR, LDO
-
-
 
       // // load a multiplicartion program into ram
       ram.mem[8'h00] = 8'b0001_0000; // LDB, LDA
