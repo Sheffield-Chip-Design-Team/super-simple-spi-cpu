@@ -35,7 +35,7 @@ endif
 COMPILE_ARGS 		+= -I$(SRC_DIR)
 
 # Include the testbench sources:
-VERILOG_SOURCES += $(PWD)/tb.v tb_tt_um_spi_test.v spi_ram_model.v
+VERILOG_SOURCES += $(PWD)/spi_ram_model.v tb.v tb_tt_um_spi_test.v
 TOPLEVEL = tb 
 
 # List test modules to run, separated by commas and without the .py suffix:
