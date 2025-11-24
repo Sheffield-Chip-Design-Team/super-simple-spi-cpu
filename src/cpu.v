@@ -8,7 +8,7 @@ module ExecutionUnit #(
   input wire                          clk,
   input wire                          reset,
   input wire                          start,
-  input wire [INPUT_DATA_WIDTH*2-1:0] opcode,
+  input wire [INPUT_DATA_WIDTH-1:0] opcode,
   input wire [INPUT_DATA_WIDTH*2-1:0] operand,
   output reg [OUTPUT_DATA_WIDTH-1:0]  cpuOut
 );
