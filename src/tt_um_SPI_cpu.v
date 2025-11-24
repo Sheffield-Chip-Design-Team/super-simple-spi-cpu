@@ -62,7 +62,7 @@ module tt_um_spi_cpu (
     assign uo_out  = cpu_out;
     
     // Mark unused bits of uio_in to keep verilator happy
-    wire _unused = &{uio_in[7:3], 1'b0};
+    wire _unused = &{uio_in[7:3], ena, 1'b0};
 
 endmodule
 
