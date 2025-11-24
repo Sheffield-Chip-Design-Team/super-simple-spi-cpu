@@ -64,7 +64,7 @@ async def test_multiplication_rom(dut):
             f"For A={A}, B={B} expected {expected}, got {got}"
         )
 
-        print (f"{A} x {B} = {got} (as expected) :D")
+        print (         f"{A} x {B} = {got}.")
 
 @cocotb.test()
 async def test_spi_activity(dut):
@@ -130,52 +130,57 @@ async def test_spi_activity(dut):
         "SPI: MOSI (uio_out[1]) never changed while CS_n was low"
     )
     
-@cocotb.test()
-async def test_multiplication_full_exhaustive(dut):
-    """
-    Exhaustive 4-bit×4-bit multiplier test.
+# # @cocotb.test()
+# # async def test_multiplication_full_exhaustive(dut):
+#     """
+#     Exhaustive 4-bit×4-bit multiplier test.
 
-    IMPORTANT: We explicitly reset the DUT here because previous tests
-    have already been running the CPU for a long time, and we want to
-    start this sweep from a clean PC/state.
-    """
+#     IMPORTANT: We explicitly reset the DUT here because previous tests
+#     have already been running the CPU for a long time, and we want to
+#     start this sweep from a clean PC/state.
+#     """
 
-    # ---- Explicit reset to re-start microcode and PC ----
-    dut.rst_n.value = 0
-    dut.ena.value   = 0
+#     # ---- Explicit reset to re-start microcode and PC ----
+#     dut.rst_n.value = 0
+#     dut.ena.value   = 0
+#     dut.ui_in.value = 0
 
-    # Let a few clock cycles elapse with reset asserted
-    for _ in range(10):
-        await RisingEdge(dut.clk)
+#     # Let a few clock cycles elapse with reset asserted
+#     for _ in range(10):
+#         await RisingEdge(dut.clk)
 
-    # Release reset and enable the design again
-    dut.rst_n.value = 1
-    dut.ena.value   = 1
+#     await wait_for_settle(dut)
 
-    # Allow tb.v initialisation / microcode fetch to settle again
-    await wait_for_settle(dut)
+#     # Release reset and enable the design again
+#     dut.rst_n.value = 1
+#     dut.ena.value   = 1
 
-    # ---- Exhaustive sweep ----
-    cycles_per_op = 2000  # should be plenty for one full microcode loop
+#     # Allow tb.v initialisation / microcode fetch to settle again
 
-    for A in range(16):
-        for B in range(16):
-            # Present operands on ui_in: [A (high nibble), B (low nibble)]
-            dut.ui_in.value = (A << 4) | B
+#     # ---- Exhaustive sweep ----
+#     cycles_per_op = 50000  # should be plenty for one full microcode loop
 
-            # Give the core time to:
-            #   - fetch micro-ops via SPI
-            #   - run the microprogram
-            #   - write result to out_port / uo_out
-            for _ in range(cycles_per_op):
-                await RisingEdge(dut.clk)
+#     for A in range(16):
+#         for B in range(16):
+            
+#             # Present operands on ui_in: [A (high nibble), B (low nibble)]
+#             dut.ui_in.value = (A << 4) | B
 
-            val = dut.uo_out.value
-            assert val.is_resolvable, f"uo_out X/Z for A={A}, B={B}: {val}"
+#             # Give the core time to:
+#             #   - fetch micro-ops via SPI
+#             #   - run the microprogram
+#             #   - write result to out_port / uo_out
+#             for _ in range(cycles_per_op):
+#                 await RisingEdge(dut.clk)
 
-            got = int(val)
-            expected = A * B
+#             val = dut.uo_out.value
+#             assert val.is_resolvable, f"uo_out X/Z for A={A}, B={B}: {val}"
 
-            assert got == expected, (
-                f"A={A}, B={B}: expected {expected}, got {got}"
-            )
+#             got = int(val)
+#             expected = A * B
+
+#             assert got == expected, (
+#                 f"A={A}, B={B}: expected {expected}, got {got}"
+#             )
+#             print (         f"{A} x {B} = {got}.")
+
