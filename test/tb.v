@@ -118,19 +118,20 @@ module tb ();
   always #10 clk = ~clk;
 
   // Program external SPI RAM with the tiny CPU program
+  // Program external SPI RAM with a simple CPU program
   initial begin
-      // Program at addresses 0x0000..0x0004:
+      // Program at addresses 0x0000..0x0003:
       // 0: LDI 1   (0001_0001)
       // 1: ADDI 1  (0010_0001)
-      // 2: ADDI 1  (0010_0001)
-      // 3: OUT     (1000_0000)
-      // 4: JMP 3   (0110_0011)
+      // 2: ADDI 1  (0010_0001) -> A = 3
+      // 3: OUT     (1000_0000) -> uo_out = 3
+      //
+      // No JMP instruction used.
 
       ram.mem[16'h0000] = 8'b0001_0001; // LDI 1
       ram.mem[16'h0001] = 8'b0010_0001; // ADDI 1
       ram.mem[16'h0002] = 8'b0010_0001; // ADDI 1
       ram.mem[16'h0003] = 8'b1000_0000; // OUT
-      ram.mem[16'h0004] = 8'b0110_0011; // JMP 3
 
       // Initial signals
       clk   = 1'b0;
