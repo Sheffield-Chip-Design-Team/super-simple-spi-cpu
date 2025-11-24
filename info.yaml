@@ -20,7 +20,7 @@ project:
     - "tt_um_spi_cpu.v"
     - "spi_wrap.v"
     - "spi_read_byte.v"
-    - "Registers.v:
+    - "Registers.v"
     - "Control.v"
     - "ALU.v"
     - "cpu.v"
