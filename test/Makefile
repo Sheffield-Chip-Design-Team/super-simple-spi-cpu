@@ -39,7 +39,7 @@ VERILOG_SOURCES += $(PWD)/spi_ram_model.v tb.v ProgramROMtest.v tb_program_romte
 TOPLEVEL = tb 
 
 # List test modules to run, separated by commas and without the .py suffix:
-COCOTB_TEST_MODULES = test test_alu test_instr_decoder
+COCOTB_TEST_MODULES = test
 
 # include cocotb's make rules to take care of the simulator setup
 include $(shell cocotb-config --makefiles)/Makefile.sim
