@@ -74,7 +74,7 @@ module ExecutionUnit #(
     // Regsiter File 
     // Contains A reg and B reg and O reg
     RegisterFile registerFile (
-        .clk(clk),
+        .clk(clk_regs),
         .reset(reset),
         // split switch input into A and B input
         .AIn(operand[7:4]), 
@@ -93,7 +93,7 @@ module ExecutionUnit #(
 
     // Shifter
     // Register for implimenting shift instructions and storing the results
-    ShiftRegister sr (clk, reset, shiftIn, (_LSR & start), {(_LSH & start), (_RSH & start)}, shiftOut, SF);
+    ShiftRegister sr (clk_sr, reset, shiftIn, (_LSR & start), {(_LSH & start), (_RSH & start)}, shiftOut, SF);
 
     // MUX for addition control flag
 
