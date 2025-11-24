@@ -249,3 +249,36 @@ async def test_midrun_reset(dut):
     assert got3 == exp3, (
         f"After mid-run reset: expected {exp3} for A={A3},B={B3}, got {got3}"
     )
+
+@cocotb.test()
+async def test_uio_mapping(dut):
+    """
+    Check that uio_oe correctly configures the SPI pins and upper nibble.
+
+    Expectations from tt_um_spi_cpu_top:
+      - uio_oe[0] = 1  (CS output)
+      - uio_oe[1] = 1  (MOSI output)
+      - uio_oe[2] = 0  (MISO input)
+      - uio_oe[3] = 1  (SCK output)
+      - uio_oe[7:4] = 4'b1000
+    """
+
+    # Let reset + RAM preload finish so uio_oe is stable
+    await wait_for_settle(dut)
+
+    val = dut.uio_oe.value
+    assert val.is_resolvable, f"uio_oe has X/Z: {val}"
+
+    mask = int(val)
+
+    cs_oe   = (mask >> 0) & 1
+    mosi_oe = (mask >> 1) & 1
+    miso_oe = (mask >> 2) & 1
+    sck_oe  = (mask >> 3) & 1
+    upper   = (mask >> 4) & 0xF  # bits [7:4]
+
+    assert cs_oe == 1,   f"Expected uio_oe[0]=1 for CS, got {cs_oe}"
+    assert mosi_oe == 1, f"Expected uio_oe[1]=1 for MOSI, got {mosi_oe}"
+    assert miso_oe == 0, f"Expected uio_oe[2]=0 for MISO input, got {miso_oe}"
+    assert sck_oe == 1,  f"Expected uio_oe[3]=1 for SCK, got {sck_oe}"
+    assert upper == 0b1000, f"Expected uio_oe[7:4]=0b1000, got {upper:04b}"
