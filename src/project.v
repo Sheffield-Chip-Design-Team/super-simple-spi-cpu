@@ -127,9 +127,10 @@ module tt_um_example (
     assign spi_miso     = uio_in[2];
 
     // Show read byte on outputs
-    assign uo_out       = ena ? data_out : 8'h00;
-
+    //assign uo_out       = ena ? data_out : 8'h00;
+    assign uo_out = ena ? (done ? data_out : 8'h00) : 8'h00;
     // Unused inputs to silence warnings
-    wire _unused = &{uio_in[7:3], ena, 1'b0};
+    // New version
+    wire _unused = &{uio_in[7:0], ena, 1'b0};
 
 endmodule
