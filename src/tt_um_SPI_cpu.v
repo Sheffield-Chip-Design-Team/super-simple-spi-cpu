@@ -5,7 +5,7 @@
 
 `default_nettype none
 
-module tt_um_spi_cpu (
+module tt_um_spi_cpu_top (
     input  wire [7:0] ui_in,    // Dedicated inputs
     output wire [7:0] uo_out,   // Dedicated outputs
     input  wire [7:0] uio_in,   // IOs: Input path
@@ -33,6 +33,8 @@ module tt_um_spi_cpu (
         .clk      (clk),
         .rst_n    (rst_n),
         .out_port (cpu_out),
+        .in_port  (ui_in),
+        .valid    (uio_out[7]),
         
         // spi interface
         .spi_cs_n (spi_cs_n),
@@ -49,7 +51,7 @@ module tt_um_spi_cpu (
     assign uio_out[1]   = spi_mosi;
     assign uio_out[3]   = spi_sck;
     assign uio_out[2]   = 1'b0;
-    assign uio_out[7:4] = 4'b0000;
+    assign uio_out[6:4] = 4'b000;
 
     assign uio_oe[0]    = 1'b1; // CS
     assign uio_oe[1]    = 1'b1; // MOSI
