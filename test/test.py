@@ -156,7 +156,8 @@ async def test_multiplication_full_exhaustive(dut):
     await wait_for_settle(dut)
 
     # ---- Exhaustive sweep ----
-    cycles_per_op = 2000  # should be plenty for one full microcode loop
+    # Use the same "very safe" wait as the random test
+    cycles_per_op = 50_000  # 50k cycles at 50 MHz ≈ 1 ms per pair
 
     for A in range(16):
         for B in range(16):
