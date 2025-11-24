@@ -99,6 +99,7 @@ module tb ();
   wire mosi = uio_out[1];
   wire sck  = uio_out[3];
   wire miso;
+  wire valid = uo_out[7];
 
   // Behavioural SPI RAM model (READ 0x03 only)
   spi_ram_model #(.MEM_BYTES(256)) ram (

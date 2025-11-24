@@ -160,8 +160,14 @@ async def test_project(dut):
     # Let the Verilog tb initial block assert reset, preload RAM, etc.
     # Wait for reset to be released (~50 ns in tb.v) plus some margin.
 
-    for i in range (10_000):
-        await RisingEdge(dut.clk)
+    for A in range (4):
+        for B in range (4):
+            dut.ui_in.value = (A << 4) | B
+        
+            for i in range (32):
+                await RisingEdge(dut.valid)
+
+            assert dut.uo_out.value == A * B, f"Expected {A * B} , got {dut.uo_out.value}"
 
 
 
