@@ -16,7 +16,7 @@ module spi_wrap (
 );
 
     // CPU state / registers
-    reg [11:0] pc;              // 12-bit program counter 
+    reg [11:0] pc; // 12-bit program counter 
     reg [7:0] opcode_cache;
     reg [3:0] opcode1, opcode2;
     reg [3:0] curr_opcode;
@@ -131,7 +131,6 @@ module spi_wrap (
         if (!rst_n) begin
            cpu_valid <= 0;
         end 
-
         cpu_valid <= cpu_start;
     end
 

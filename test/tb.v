@@ -117,7 +117,19 @@ module tb ();
   // Program external SPI RAM with the tiny CPU program
  // Program external SPI RAM with a simple CPU program
   initial begin
-      // load a multiplicartion program into ram
+
+      // ram.mem[8'h00] = 8'b0001_0000; // LDB, LDA
+      // ram.mem[8'h01] = 8'b0010_1010; // LDO, ADD
+      // ram.mem[8'h02] = 8'b0010_1011; // LDO, SUB
+      // ram.mem[8'h03] = 8'b0010_1110; // LDO, XOR
+      // ram.mem[8'h04] = 8'b0110_0011; // RSH, LDSA
+      // ram.mem[8'h05] = 8'b0010_1000; // LDSB, SNZ A
+      // ram.mem[8'h06] = 8'b0100_0010; // SNZ S, LSH
+      // ram.mem[8'h07] = 8'b0111_0010; // CLR, LDO
+
+
+
+      // // load a multiplicartion program into ram
       ram.mem[8'h00] = 8'b0001_0000; // LDB, LDA
       ram.mem[8'h01] = 8'b0110_0100; // RSH, LDSB
       ram.mem[8'h02] = 8'b0110_1000; // RSH, SNZ A

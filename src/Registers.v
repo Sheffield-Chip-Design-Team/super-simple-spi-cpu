@@ -137,7 +137,6 @@ module ShiftRegister (  // synchronous reset, with enable
     always @(posedge clk) begin
        
        if (~reset) begin
-            
                if (loadEnable) begin
                     out <= in;
                     flag <= flag;
@@ -160,7 +159,6 @@ module ShiftRegister (  // synchronous reset, with enable
                         flag <= flag;
                     end
                 end
-
         end else begin// reset logic   
             out <= 0;
             flag <= 0;

@@ -93,17 +93,16 @@ module ExecutionUnit #(
 
     // Shifter
     // Register for implimenting shift instructions and storing the results
-    ShiftRegister sr (clk, reset, shiftIn, _LSR, {_LSH,_RSH}, shiftOut, SF);
+    ShiftRegister sr (clk, reset, shiftIn, (_LSR & start), {(_LSH & start), (_RSH & start)}, shiftOut, SF);
 
     // MUX for addition control flag
 
     ADD_MUX addmux (_ADD, _SNZA,_SNZS, SF, _ADDin);
 
-
     // MUX for ALU inputs , depends on control signals .
     // e.g (SNZA, SNZB, LDSA and LDSB require different inputs.
 
-    ALU_MUX alumux (_SNZA, _SNZS, SF ,shiftOut, ACCout, Aout, Bout, in1,in2);
+    ALU_MUX alumux (_SNZA, _SNZS, SF ,shiftOut, ACCout, Aout, Bout, in1, in2);
 
     // Arithmetic Logic Unit (combinatorial)
     ArithmeticLogicUnit alu( 
@@ -125,12 +124,14 @@ module ExecutionUnit #(
 
     // Accumulator (ACC)
     // Stores the results of Arithmetic or Logical operations
-    ResetEnableDFF ACC (clk, _CLR || reset, enableACC , aluOut, ACCout); 
     defparam ACC.DATA_WIDTH = OUTPUT_DATA_WIDTH;
+    ResetEnableDFF ACC (clk, _CLR || reset, (enableACC) , aluOut, ACCout); 
 
     // CPU Output
-    always @(*) begin
+    always @(posedge clk) begin
+      if (start) begin
         cpuOut = Oout;
+      end
     end
 endmodule
 
