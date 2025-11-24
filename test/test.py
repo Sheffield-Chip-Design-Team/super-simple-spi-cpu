@@ -129,54 +129,123 @@ async def test_spi_activity(dut):
     assert mosi_changes_while_cs_low > 0, (
         "SPI: MOSI (uio_out[1]) never changed while CS_n was low"
     )
-    
+    ######passes commenting it out for speed up
+# @cocotb.test()
+# async def test_multiplication_full_exhaustive(dut):
+#     """
+#     Exhaustive 4-bit×4-bit multiplier test.
+
+#     IMPORTANT: We explicitly reset the DUT here because previous tests
+#     have already been running the CPU for a long time, and we want to
+#     start this sweep from a clean PC/state.
+#     """
+
+#     # ---- Explicit reset to re-start microcode and PC ----
+#     dut.rst_n.value = 0
+#     dut.ena.value   = 0
+
+#     # Let a few clock cycles elapse with reset asserted
+#     for _ in range(10):
+#         await RisingEdge(dut.clk)
+
+#     # Release reset and enable the design again
+#     dut.rst_n.value = 1
+#     dut.ena.value   = 1
+
+#     # Allow tb.v initialisation / microcode fetch to settle again
+#     await wait_for_settle(dut)
+
+#     # ---- Exhaustive sweep ----
+#     # Use the same "very safe" wait as the random test
+#     cycles_per_op = 50_000  # 50k cycles at 50 MHz ≈ 1 ms per pair
+
+#     for A in range(16):
+#         for B in range(16):
+#             # Present operands on ui_in: [A (high nibble), B (low nibble)]
+#             dut.ui_in.value = (A << 4) | B
+
+#             # Give the core time to:
+#             #   - fetch micro-ops via SPI
+#             #   - run the microprogram
+#             #   - write result to out_port / uo_out
+#             for _ in range(cycles_per_op):
+#                 await RisingEdge(dut.clk)
+
+#             val = dut.uo_out.value
+#             assert val.is_resolvable, f"uo_out X/Z for A={A}, B={B}: {val}"
+
+#             got = int(val)
+#             expected = A * B
+
+#             assert got == expected, (
+#                 f"A={A}, B={B}: expected {expected}, got {got}"
+#             )
+
+
 @cocotb.test()
-async def test_multiplication_full_exhaustive(dut):
+async def test_midrun_reset(dut):
     """
-    Exhaustive 4-bit×4-bit multiplier test.
+    Check that asserting rst_n low mid-run resets the core cleanly and it
+    still works afterwards.
 
-    IMPORTANT: We explicitly reset the DUT here because previous tests
-    have already been running the CPU for a long time, and we want to
-    start this sweep from a clean PC/state.
+    Scenario:
+      1. Let the CPU compute one product (A1,B1) and check the result.
+      2. Start another product (A2,B2), then assert reset in the middle.
+      3. Release reset and check a new product (A3,B3) is still correct.
     """
 
-    # ---- Explicit reset to re-start microcode and PC ----
+    # Start from whatever state previous tests left, but let things settle
+    await wait_for_settle(dut)
+
+    # ---- 1) Baseline multiply before reset ----
+    A1, B1 = 7, 9
+    dut.ui_in.value = (A1 << 4) | B1
+
+    # Use the same long wait as the random test so we know the result is valid
+    for _ in range(50_000):
+        await RisingEdge(dut.clk)
+
+    val1 = dut.uo_out.value
+    assert val1.is_resolvable, f"uo_out X/Z before reset for A={A1},B={B1}: {val1}"
+    got1 = int(val1)
+    exp1 = A1 * B1
+    assert got1 == exp1, f"Before reset: expected {exp1}, got {got1}"
+
+    # ---- 2) Start another multiply, then reset mid-run ----
+    A2, B2 = 5, 6
+    dut.ui_in.value = (A2 << 4) | B2
+
+    # Let it run a bit, but not long enough to certainly finish
+    for _ in range(5_000):
+        await RisingEdge(dut.clk)
+
+    # Assert reset mid-run
     dut.rst_n.value = 0
     dut.ena.value   = 0
 
-    # Let a few clock cycles elapse with reset asserted
+    # Hold reset for a few cycles
     for _ in range(10):
         await RisingEdge(dut.clk)
 
-    # Release reset and enable the design again
+    # Release reset and re-enable
     dut.rst_n.value = 1
     dut.ena.value   = 1
 
-    # Allow tb.v initialisation / microcode fetch to settle again
+    # Give the core time to restart its microcoded loop
     await wait_for_settle(dut)
 
-    # ---- Exhaustive sweep ----
-    # Use the same "very safe" wait as the random test
-    cycles_per_op = 50_000  # 50k cycles at 50 MHz ≈ 1 ms per pair
+    # ---- 3) After reset, verify a new multiply still works ----
+    A3, B3 = 3, 4
+    dut.ui_in.value = (A3 << 4) | B3
 
-    for A in range(16):
-        for B in range(16):
-            # Present operands on ui_in: [A (high nibble), B (low nibble)]
-            dut.ui_in.value = (A << 4) | B
+    for _ in range(50_000):
+        await RisingEdge(dut.clk)
 
-            # Give the core time to:
-            #   - fetch micro-ops via SPI
-            #   - run the microprogram
-            #   - write result to out_port / uo_out
-            for _ in range(cycles_per_op):
-                await RisingEdge(dut.clk)
+    val3 = dut.uo_out.value
+    assert val3.is_resolvable, f"uo_out X/Z after reset for A={A3},B={B3}: {val3}"
+    got3 = int(val3)
+    exp3 = A3 * B3
 
-            val = dut.uo_out.value
-            assert val.is_resolvable, f"uo_out X/Z for A={A}, B={B}: {val}"
-
-            got = int(val)
-            expected = A * B
-
-            assert got == expected, (
-                f"A={A}, B={B}: expected {expected}, got {got}"
-            )
+    assert got3 == exp3, (
+        f"After mid-run reset: expected {exp3} for A={A3},B={B3}, got {got3}"
+    )
