@@ -13,6 +13,10 @@ module ExecutionUnit #(
   output reg [OUTPUT_DATA_WIDTH-1:0]  cpuOut
 );
 
+    (*keep*) wire clk_buf = clk;
+    (*keep*) wire sr_clk = clk;
+    (*keep*) wire regs_clk = clk;
+
     // Control Signals from Instruction Decoder
     wire _LDA, _LDB, _LDO;               // Load A, B and O registers
     wire _LSR;                           // Load Shift Register
@@ -74,7 +78,7 @@ module ExecutionUnit #(
     // Regsiter File 
     // Contains A reg and B reg and O reg
     RegisterFile registerFile (
-        .clk(clk),
+        .clk(regs_clk),
         .reset(reset),
         // split switch input into A and B input
         .AIn(operand[7:4]), 
@@ -93,7 +97,7 @@ module ExecutionUnit #(
 
     // Shifter
     // Register for implimenting shift instructions and storing the results
-    ShiftRegister sr (clk, reset, shiftIn, (_LSR & start), {(_LSH & start), (_RSH & start)}, shiftOut, SF);
+    ShiftRegister sr (clk_sr, reset, shiftIn, (_LSR & start), {(_LSH & start), (_RSH & start)}, shiftOut, SF);
 
     // MUX for addition control flag
 
@@ -125,10 +129,10 @@ module ExecutionUnit #(
     // Accumulator (ACC)
     // Stores the results of Arithmetic or Logical operations
     defparam ACC.DATA_WIDTH = OUTPUT_DATA_WIDTH;
-    ResetEnableDFF ACC (clk, _CLR || reset, (enableACC) , aluOut, ACCout); 
+    ResetEnableDFF ACC (regs_clk, _CLR || reset, (enableACC) , aluOut, ACCout); 
 
     // CPU Output
-    always @(posedge clk) begin
+    always @(posedge clk_buf) begin
       if (start) begin
         cpuOut = Oout;
       end
