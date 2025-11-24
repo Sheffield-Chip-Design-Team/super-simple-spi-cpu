@@ -26,7 +26,7 @@ module tt_um_spi_cpu_top (
     wire spi_sck;
     wire spi_mosi;
     wire spi_miso;
-
+    wire valid;
     // CPU instance
     spi_wrap cpu (
         // cpu interface
@@ -34,7 +34,7 @@ module tt_um_spi_cpu_top (
         .rst_n    (rst_n),
         .out_port (cpu_out),
         .in_port  (ui_in),
-        .valid    (uio_out[7]),
+        .valid    (valid),
         
         // spi interface
         .spi_cs_n (spi_cs_n),
@@ -52,7 +52,8 @@ module tt_um_spi_cpu_top (
     assign uio_out[1]   = spi_mosi;
     assign uio_out[3]   = spi_sck;
     assign uio_out[6:4] = 3'b000;
-
+    assign uio_out[7]   = valid;
+    
     assign uio_oe[0]    = 1'b1; // CS
     assign uio_oe[1]    = 1'b1; // MOSI
     assign uio_oe[3]    = 1'b1; // SCK

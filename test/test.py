@@ -129,9 +129,9 @@ async def test_spi_activity(dut):
     assert mosi_changes_while_cs_low > 0, (
         "SPI: MOSI (uio_out[1]) never changed while CS_n was low"
     )
-    
-# # @cocotb.test()
-# # async def test_multiplication_full_exhaustive(dut):
+    ######passes commenting it out for speed up
+# @cocotb.test()
+# async def test_multiplication_full_exhaustive(dut):
 #     """
 #     Exhaustive 4-bit×4-bit multiplier test.
 
@@ -143,26 +143,24 @@ async def test_spi_activity(dut):
 #     # ---- Explicit reset to re-start microcode and PC ----
 #     dut.rst_n.value = 0
 #     dut.ena.value   = 0
-#     dut.ui_in.value = 0
 
 #     # Let a few clock cycles elapse with reset asserted
 #     for _ in range(10):
 #         await RisingEdge(dut.clk)
-
-#     await wait_for_settle(dut)
 
 #     # Release reset and enable the design again
 #     dut.rst_n.value = 1
 #     dut.ena.value   = 1
 
 #     # Allow tb.v initialisation / microcode fetch to settle again
+#     await wait_for_settle(dut)
 
 #     # ---- Exhaustive sweep ----
-#     cycles_per_op = 50000  # should be plenty for one full microcode loop
+#     # Use the same "very safe" wait as the random test
+#     cycles_per_op = 50_000  # 50k cycles at 50 MHz ≈ 1 ms per pair
 
 #     for A in range(16):
 #         for B in range(16):
-            
 #             # Present operands on ui_in: [A (high nibble), B (low nibble)]
 #             dut.ui_in.value = (A << 4) | B
 
@@ -182,5 +180,105 @@ async def test_spi_activity(dut):
 #             assert got == expected, (
 #                 f"A={A}, B={B}: expected {expected}, got {got}"
 #             )
-#             print (         f"{A} x {B} = {got}.")
 
+
+@cocotb.test()
+async def test_midrun_reset(dut):
+    """
+    Check that asserting rst_n low mid-run resets the core cleanly and it
+    still works afterwards.
+
+    Scenario:
+      1. Let the CPU compute one product (A1,B1) and check the result.
+      2. Start another product (A2,B2), then assert reset in the middle.
+      3. Release reset and check a new product (A3,B3) is still correct.
+    """
+
+    # Start from whatever state previous tests left, but let things settle
+    await wait_for_settle(dut)
+
+    # ---- 1) Baseline multiply before reset ----
+    A1, B1 = 7, 9
+    dut.ui_in.value = (A1 << 4) | B1
+
+    # Use the same long wait as the random test so we know the result is valid
+    for _ in range(50_000):
+        await RisingEdge(dut.clk)
+
+    val1 = dut.uo_out.value
+    assert val1.is_resolvable, f"uo_out X/Z before reset for A={A1},B={B1}: {val1}"
+    got1 = int(val1)
+    exp1 = A1 * B1
+    assert got1 == exp1, f"Before reset: expected {exp1}, got {got1}"
+
+    # ---- 2) Start another multiply, then reset mid-run ----
+    A2, B2 = 5, 6
+    dut.ui_in.value = (A2 << 4) | B2
+
+    # Let it run a bit, but not long enough to certainly finish
+    for _ in range(5_000):
+        await RisingEdge(dut.clk)
+
+    # Assert reset mid-run
+    dut.rst_n.value = 0
+    dut.ena.value   = 0
+
+    # Hold reset for a few cycles
+    for _ in range(10):
+        await RisingEdge(dut.clk)
+
+    # Release reset and re-enable
+    dut.rst_n.value = 1
+    dut.ena.value   = 1
+
+    # Give the core time to restart its microcoded loop
+    await wait_for_settle(dut)
+
+    # ---- 3) After reset, verify a new multiply still works ----
+    A3, B3 = 3, 4
+    dut.ui_in.value = (A3 << 4) | B3
+
+    for _ in range(50_000):
+        await RisingEdge(dut.clk)
+
+    val3 = dut.uo_out.value
+    assert val3.is_resolvable, f"uo_out X/Z after reset for A={A3},B={B3}: {val3}"
+    got3 = int(val3)
+    exp3 = A3 * B3
+
+    assert got3 == exp3, (
+        f"After mid-run reset: expected {exp3} for A={A3},B={B3}, got {got3}"
+    )
+
+@cocotb.test()
+async def test_uio_mapping(dut):
+    """
+    Check that uio_oe correctly configures the SPI pins and upper nibble.
+
+    Expectations from tt_um_spi_cpu_top:
+      - uio_oe[0] = 1  (CS output)
+      - uio_oe[1] = 1  (MOSI output)
+      - uio_oe[2] = 0  (MISO input)
+      - uio_oe[3] = 1  (SCK output)
+      - uio_oe[7:4] = 4'b1000
+    """
+
+    # Let reset + RAM preload finish so uio_oe is stable
+    await wait_for_settle(dut)
+
+    val = dut.uio_oe.value
+    assert val.is_resolvable, f"uio_oe has X/Z: {val}"
+
+    mask = int(val)
+
+    cs_oe   = (mask >> 0) & 1
+    mosi_oe = (mask >> 1) & 1
+    miso_oe = (mask >> 2) & 1
+    sck_oe  = (mask >> 3) & 1
+    upper   = (mask >> 4) & 0xF  # bits [7:4]
+
+    assert cs_oe == 1,   f"Expected uio_oe[0]=1 for CS, got {cs_oe}"
+    assert mosi_oe == 1, f"Expected uio_oe[1]=1 for MOSI, got {mosi_oe}"
+    assert miso_oe == 0, f"Expected uio_oe[2]=0 for MISO input, got {miso_oe}"
+    assert sck_oe == 1,  f"Expected uio_oe[3]=1 for SCK, got {sck_oe}"
+    assert upper == 0b1000, f"Expected uio_oe[7:4]=0b1000, got {upper:04b}"
