@@ -19,7 +19,6 @@ project:
   source_files:
     - "project.v"
     - "spi_cpu.v"
-    - "spi_ram_model.v"
     - "spi_read_byte.v"
 
 # The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
