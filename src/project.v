@@ -105,7 +105,18 @@ module tt_um_example (
         .mosi    (spi_mosi),
         .miso    (spi_miso)
     );
-
+// inside project.v:
+spi_cpu cpu (
+    .clk      (clk),
+    .rst_n    (rst_n),
+    .ena      (ena),
+    .in_port  (ui_in),
+    .out_port (cpu_out),
+    .spi_cs_n (spi_cs_n),
+    .spi_sck  (spi_sck),
+    .spi_mosi (spi_mosi),
+    .spi_miso (spi_miso)
+);
     // Map SPI to uio pins:
     // uio[0] = CS_n (output)
     // uio[1] = MOSI (output)
