@@ -22,6 +22,7 @@ module spi_read_byte (
     input  wire        miso        // master-in
 );
 
+
     // States
     localparam ST_IDLE  = 2'd0;
     localparam ST_SEND  = 2'd1;
@@ -35,7 +36,9 @@ module spi_read_byte (
     reg [7:0]  shift_in;       // incoming byte
     reg [4:0]  bit_count;      // fits 24 or 8
 
-    always @(posedge clk or negedge rst_n) begin
+    wire clk_buf =  clk;
+    
+    always @(posedge clk) begin
         if (!rst_n) begin
             state     <= ST_IDLE;
             phase     <= 1'b0;
