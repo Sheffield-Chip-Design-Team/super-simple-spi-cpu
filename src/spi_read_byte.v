@@ -22,7 +22,6 @@ module spi_read_byte (
     input  wire        miso        // master-in
 );
 
-
     // States
     localparam ST_IDLE  = 2'd0;
     localparam ST_SEND  = 2'd1;
@@ -36,18 +35,19 @@ module spi_read_byte (
     reg [7:0]  shift_in;       // incoming byte
     reg [4:0]  bit_count;      // fits 24 or 8
 
-    wire clk_buf =  clk;
-    
+    (*keep*) wire clk_buf = clk;
+
+    // control fsm
     always @(posedge clk) begin
         if (!rst_n) begin
             state     <= ST_IDLE;
             phase     <= 1'b0;
             cs_n      <= 1'b1;
-            sck       <= 1'b0;
-            mosi      <= 1'b0;
+            // sck       <= 1'b0;
+            // mosi      <= 1'b0;
             busy      <= 1'b0;
             done      <= 1'b0;
-            data_out  <= 8'h00;
+            // data_out  <= 8'h00;
             shift_out <= 24'h000000;
             shift_in  <= 8'h00;
             bit_count <= 5'd0;
@@ -60,7 +60,7 @@ module spi_read_byte (
                 ST_IDLE: begin
                     busy  <= 1'b0;
                     cs_n  <= 1'b1;
-                    sck   <= 1'b0;
+                    // sck   <= 1'b0;
                     phase <= 1'b0;
 
                     if (start) begin
@@ -82,12 +82,12 @@ module spi_read_byte (
                 ST_SEND: begin
                     if (phase == 1'b0) begin
                         // low phase
-                        sck  <= 1'b0;
-                        mosi <= shift_out[23];
+                        //sck  <= 1'b0;
+                        //mosi <= shift_out[23];
                         phase <= 1'b1;
                     end else begin
                         // high phase
-                        sck   <= 1'b1;
+                        //sck   <= 1'b1;
                         phase <= 1'b0;
 
                         shift_out <= {shift_out[22:0], 1'b0};
@@ -109,11 +109,11 @@ module spi_read_byte (
                 // ------------------------------------------------------
                 ST_RECV: begin
                     if (phase == 1'b0) begin
-                        sck   <= 1'b0;
-                        mosi  <= 1'b0;  // don't care
+                        //sck   <= 1'b0;
+                        // mosi  <= 1'b0;  // don't care
                         phase <= 1'b1;
                     end else begin
-                        sck   <= 1'b1;
+                        //sck   <= 1'b1;
                         phase <= 1'b0;
 
                         // sample MISO at rising edge
@@ -131,13 +131,65 @@ module spi_read_byte (
                 // ------------------------------------------------------
                 ST_DONE: begin
                     cs_n  <= 1'b1;
-                    sck   <= 1'b0;
                     busy  <= 1'b0;
                     done  <= 1'b1; // one-cycle pulse
                     state <= ST_IDLE;
                 end
 
                 default: state <= ST_IDLE;
+            endcase
+        end
+    end
+
+    // datapath fsm
+     always @(posedge clk_buf) begin
+        if (!rst_n) begin
+            sck       <= 1'b0;
+            mosi      <= 1'b0;
+            // data_out  <= 8'h00; 
+        end else begin
+
+            case (state)
+                // ------------------------------------------------------
+                ST_IDLE: begin
+                    sck   <= 1'b0;
+                end
+
+                // ------------------------------------------------------
+                // Send 24 bits: command + address, MSB first
+                // phase 0: SCK low, drive MOSI
+                // phase 1: SCK high, then shift
+                // ------------------------------------------------------
+                ST_SEND: begin
+                    if (phase == 1'b0) begin
+                        // low phase
+                        sck  <= 1'b0;
+                        mosi <= shift_out[23];
+                    end else begin
+                        // high phase
+                        sck  <= 1'b1;
+                    end
+                end
+
+                // ------------------------------------------------------
+                // Receive 8 bits on MISO
+                // phase 0: SCK low
+                // phase 1: SCK high, sample MISO
+                // ------------------------------------------------------
+                ST_RECV: begin
+                    if (phase == 1'b0) begin
+                        sck   <= 1'b0;
+                        mosi  <= 1'b0;  // don't care
+                    end else begin
+                        sck   <= 1'b1;
+                    end
+                end
+
+                // ------------------------------------------------------
+                ST_DONE: begin
+                    sck   <= 1'b0;
+                end
+
             endcase
         end
     end

@@ -44,8 +44,8 @@ module ExecutionUnit #(
     wire [OUTPUT_DATA_WIDTH-1:0] in1;
     wire [OUTPUT_DATA_WIDTH-1:0] in2;
 
-    // Split clock into "sub-clocks" with keep attributes to fux fanout violations
-    (* keep *) wire clk_pc   = clk;  // program counter clock
+    // Split clock into "sub-clocks" with keep attributes to fix fanout violations
+    (* keep *) wire clk_buf  = clk;  // output buffer
     (* keep *) wire clk_regs = clk;  // register file + ACC
     (* keep *) wire clk_sr   = clk;  // shift register 
     
@@ -128,7 +128,7 @@ module ExecutionUnit #(
     ResetEnableDFF ACC (clk_regs, _CLR || reset, (enableACC) , aluOut, ACCout); 
 
     // CPU Output
-    always @(posedge clk_regs) begin
+    always @(posedge clk_buf) begin
       if (start) begin
         cpuOut = Oout;
       end

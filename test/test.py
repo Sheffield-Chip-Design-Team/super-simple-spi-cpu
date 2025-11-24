@@ -64,7 +64,7 @@ async def test_multiplication_rom(dut):
             f"For A={A}, B={B} expected {expected}, got {got}"
         )
 
-        print (f"{A} x {B} = {got} (as expected) :D")
+        print (         f"{A} x {B} = {got}.")
 
 @cocotb.test()
 async def test_spi_activity(dut):

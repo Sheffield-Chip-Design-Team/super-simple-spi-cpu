@@ -15,13 +15,12 @@ module spi_wrap (
     input  wire       spi_miso
 );
 
-     // Split the incoming clock into branches so tools can see separate loads.
-    // Functionally they are all the same signal.
-    (* keep *) wire clk_pc   = clk;  // PC + control FSM
-    (* keep *) wire clk_spi  = clk;  // SPI bit-banging interface
-    (* keep *) wire clk_core = clk;  // ExecutionUnit + cpu_valid
+    // manual clock buffering to limit fanout
+    (*keep*) wire clk_fsm = clk;
+    (*keep*) wire clk_cpu = clk;
+    (*keep*) wire clk_spi = clk;
+    (*keep*) wire clk_status = clk;
 
-    
     // CPU state / registers
     reg [11:0] pc;              // 12-bit program counter 
     reg [7:0] opcode_cache;
@@ -71,10 +70,8 @@ module spi_wrap (
     reg cpu_start;
     reg cpu_valid;
 
-    // SPI FSM - fetch 2opcodes and then execute both before fetching the next ones
-
-    always @(posedge clk_pc) begin
-
+    // SPI FSM - fetch 2 opcodes and then execute both before fetching the next ones
+    always @(posedge clk_fsm) begin
         if (!rst_n) begin
             state    <= S_RESET;
             spi_start <= 1'b0;
@@ -134,7 +131,7 @@ module spi_wrap (
         end
     end
 
-    always @(posedge clk_core) begin
+    always @(posedge clk_status) begin
         if (!rst_n) begin
            cpu_valid <= 0;
         end 
@@ -143,7 +140,7 @@ module spi_wrap (
     end
 
     ExecutionUnit core (
-        .clk(clk_core),
+        .clk(clk_cpu),
         .reset(!rst_n),
         .start(cpu_start),
         .opcode(curr_opcode),
