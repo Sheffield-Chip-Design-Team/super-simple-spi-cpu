@@ -132,17 +132,50 @@ async def test_spi_activity(dut):
     
 @cocotb.test()
 async def test_multiplication_full_exhaustive(dut):
+    """
+    Exhaustive 4-bit×4-bit multiplier test.
+
+    IMPORTANT: We explicitly reset the DUT here because previous tests
+    have already been running the CPU for a long time, and we want to
+    start this sweep from a clean PC/state.
+    """
+
+    # ---- Explicit reset to re-start microcode and PC ----
+    dut.rst_n.value = 0
+    dut.ena.value   = 0
+
+    # Let a few clock cycles elapse with reset asserted
+    for _ in range(10):
+        await RisingEdge(dut.clk)
+
+    # Release reset and enable the design again
+    dut.rst_n.value = 1
+    dut.ena.value   = 1
+
+    # Allow tb.v initialisation / microcode fetch to settle again
     await wait_for_settle(dut)
-    cycles_per_op = 2000
+
+    # ---- Exhaustive sweep ----
+    cycles_per_op = 2000  # should be plenty for one full microcode loop
 
     for A in range(16):
         for B in range(16):
+            # Present operands on ui_in: [A (high nibble), B (low nibble)]
             dut.ui_in.value = (A << 4) | B
+
+            # Give the core time to:
+            #   - fetch micro-ops via SPI
+            #   - run the microprogram
+            #   - write result to out_port / uo_out
             for _ in range(cycles_per_op):
                 await RisingEdge(dut.clk)
 
             val = dut.uo_out.value
             assert val.is_resolvable, f"uo_out X/Z for A={A}, B={B}: {val}"
+
             got = int(val)
             expected = A * B
-            assert got == expected, f"A={A}, B={B}: expected {expected}, got {got}"
+
+            assert got == expected, (
+                f"A={A}, B={B}: expected {expected}, got {got}"
+            )
