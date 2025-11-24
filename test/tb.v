@@ -77,8 +77,8 @@ module tb ();
   wire VGND = 1'b0;
 `endif
 
-  // DUT: your TinyTapeout top (CPU wrapper) in src/project.v
-  tt_um_example user_project (
+// DUT: your TinyTapeout top
+  tt_um_spi_cpu user_project (
 `ifdef GL_TEST
       .VPWR(VPWR),
       .VGND(VGND),
