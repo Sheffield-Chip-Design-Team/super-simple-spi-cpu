@@ -85,46 +85,32 @@
 #     assert got == expected, f"Expected {expected}, got {got}"
 
 import cocotb
-from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer
 
 
 @cocotb.test()
 async def test_project(dut):
     """
-    Run the tiny SPI CPU for a bit and check that it outputs 3 on uo_out.
+    Run the SPI-based tiny CPU for a bit and check that it outputs 3 on uo_out.
 
-    Program in tb.v:
+    Program loaded in tb.v:
 
         0: LDI 1
         1: ADDI 1
         2: ADDI 1   -> A = 3
         3: OUT      -> uo_out = 3
-        4: JMP 3    -> loop
 
-    So after a while, uo_out should be 3 (0x03).
+    No jump instruction is used.
     """
 
-    # Start clock (20 ns period = 50 MHz)
-    cocotb.start_soon(Clock(dut.clk, 20, units="ns").start())
-
-    # Explicitly initialise inputs
-    dut.ena.value   = 0
-    dut.rst_n.value = 0
-    dut.ui_in.value = 0
-    dut.uio_in.value = 0
-
-    # Hold reset for a bit
-    await Timer(50, units="ns")
-
-    # Release reset and enable design
-    dut.rst_n.value = 1
-    dut.ena.value   = 1
+    # Let the Verilog tb initial block assert reset, preload RAM, etc.
+    # Wait for reset to be released (~50 ns in tb.v) plus some margin.
+    await Timer(200, units="ns")
 
     expected = 3
     got = int(dut.uo_out.value)
 
-    # Run up to 2000 cycles, watching for uo_out == 3
+    # Run up to 2000 clock cycles, watching for uo_out == 3
     for _ in range(2000):
         await RisingEdge(dut.clk)
         got = int(dut.uo_out.value)
