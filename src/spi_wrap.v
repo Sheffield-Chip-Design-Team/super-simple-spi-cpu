@@ -14,8 +14,8 @@ module spi_wrap (
 );
 
     // CPU state / registers
-    reg [7:0] pc;        // 8-bit program counter (256 instructions max)
-    reg [7:0] opcode;
+    reg [11:0] pc;        // 12-bit program counter 
+    reg [3:0] opcode;
     reg [7:0] operand;
     reg [7:0] cpu_out;
 
@@ -93,14 +93,14 @@ module spi_wrap (
                 S_FETCH_WAIT_OPCODE: begin
                     if (spi_done) begin
                         spi_start <= 1'b1;   // one-cycle pulse
-                        opcode    <= spi_data;
+                        opcode    <= spi_data[3:0];
                         state     <= S_FETCH_WAIT_OPERAND;
                     end
                 end
 
                 S_FETCH_WAIT_OPERAND: begin
                     if (spi_done) begin
-                        operand <= spi_data;
+                        operand <= spi_data; // 2 x 4-bit operands
                         state <= S_EXECUTE;
                         valid <= 1'b1;
                     end
