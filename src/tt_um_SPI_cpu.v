@@ -58,7 +58,7 @@ module tt_um_spi_cpu (
     assign uio_oe[7:4]  = 4'b0000;
 
     // CPU result on main outputs
-    assign uo_out  = cpu_out;
+    assign uo_out  = ena ? cpu_out : 8'h00; // use ena
 
     // Mark unused bits of uio_in to keep verilator happy
     wire _unused = &{uio_in[7:3], 1'b0};
