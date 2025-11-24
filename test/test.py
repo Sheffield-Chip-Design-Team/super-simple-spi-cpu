@@ -47,38 +47,39 @@ from cocotb.triggers import RisingEdge, Timer
 
 @cocotb.test()
 async def test_project(dut):
-    """Check that tt_um_example reads 0xA5 from external SPI RAM at addr 0x12."""
+    """
+    Run the tiny CPU for a bit and check that it outputs 3 on uo_out.
 
-    # Start clock (20 ns period = 50 MHz)
+    Program in tb.v:
+
+        0: LDI 1
+        1: ADDI 1
+        2: ADDI 1   -> A = 3
+        3: OUT      -> uo_out = 3
+        4: JMP 3    -> loop
+
+    So after a while, uo_out should be 3 (0x03).
+    """
+
+    # Start clock
     cocotb.start_soon(Clock(dut.clk, 20, units="ns").start())
 
-    # Default values
-    dut.ena.value = 0
-    dut.rst_n.value = 0
-    dut.ui_in.value = 0
-    dut.uio_in.value = 0
+    # At time 0 the Verilog tb initial block will assert reset and preload RAM.
+    # Let things settle a bit.
+    await Timer(100, units="ns")
 
-    # Let things settle
-    await Timer(50, units="ns")
-
-    # Release reset and enable design
+    # Ensure reset is released and design enabled (tb.v already does this, but be explicit)
     dut.rst_n.value = 1
     dut.ena.value = 1
 
-    # Tell the design which address to read: 0x12
-    dut.ui_in.value = 0x12
-
-    # Wait until the SPI read finishes.
-    # Inside tb.v, the top instance is called "user_project", and inside that
-    # your spi_read_byte instance is "spi_if", so we can watch its .done signal.
-    # (This path must match your Verilog!)
-    while int(dut.user_project.spi_if.done.value) == 0:
-        await RisingEdge(dut.clk)
-
-    # One more cycle to let uo_out stabilize
-    await RisingEdge(dut.clk)
-
+    # Run for some cycles, watching for uo_out == 3
+    expected = 3
     got = int(dut.uo_out.value)
-    exp = 0xA5
 
-    assert got == exp, f"Expected 0x{exp:02X}, got 0x{got:02X}"
+    for _ in range(2000):
+        await RisingEdge(dut.clk)
+        got = int(dut.uo_out.value)
+        if got == expected:
+            break
+
+    assert got == expected, f"Expected {expected}, got {got}"
