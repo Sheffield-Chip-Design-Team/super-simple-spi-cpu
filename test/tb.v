@@ -160,6 +160,11 @@ module tb ();
       ram.mem[8'h0D] = 8'b0010_1001; // LDO, SNZ S
       ram.mem[8'h0E] = 8'b0111_0111; // CLR, CLR
       ram.mem[8'h0F] = 8'b0111_0111; // CLR, CLR
+
+      for (int i = 16; i < 256; i=i+1) begin
+          ram.mem[i] = 8'b0111_0111; // CLR, CLR
+      end
+      
   end
 
 endmodule
