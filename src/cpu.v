@@ -13,10 +13,6 @@ module ExecutionUnit #(
   output reg [OUTPUT_DATA_WIDTH-1:0]  cpuOut
 );
 
-    (*keep*) wire clk_buf = clk;
-    (*keep*) wire sr_clk = clk;
-    (*keep*) wire regs_clk = clk;
-
     // Control Signals from Instruction Decoder
     wire _LDA, _LDB, _LDO;               // Load A, B and O registers
     wire _LSR;                           // Load Shift Register
@@ -49,7 +45,7 @@ module ExecutionUnit #(
     wire [OUTPUT_DATA_WIDTH-1:0] in2;
 
     // Split clock into "sub-clocks" with keep attributes to fux fanout violations
-    (* keep *) wire clk_pc   = clk;  // program counter clock
+    (* keep *) wire clk_buf  = clk;  // output bif
     (* keep *) wire clk_regs = clk;  // register file + ACC
     (* keep *) wire clk_sr   = clk;  // shift register 
     
@@ -78,7 +74,7 @@ module ExecutionUnit #(
     // Regsiter File 
     // Contains A reg and B reg and O reg
     RegisterFile registerFile (
-        .clk(regs_clk),
+        .clk(clk_regs),
         .reset(reset),
         // split switch input into A and B input
         .AIn(operand[7:4]), 
@@ -129,7 +125,7 @@ module ExecutionUnit #(
     // Accumulator (ACC)
     // Stores the results of Arithmetic or Logical operations
     defparam ACC.DATA_WIDTH = OUTPUT_DATA_WIDTH;
-    ResetEnableDFF ACC (regs_clk, _CLR || reset, (enableACC) , aluOut, ACCout); 
+    ResetEnableDFF ACC (clk_regs, _CLR || reset, (enableACC) , aluOut, ACCout); 
 
     // CPU Output
     always @(posedge clk_buf) begin

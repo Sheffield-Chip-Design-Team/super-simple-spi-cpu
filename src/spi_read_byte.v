@@ -82,12 +82,12 @@ module spi_read_byte (
                 ST_SEND: begin
                     if (phase == 1'b0) begin
                         // low phase
-                        sck  <= 1'b0;
+                        //sck  <= 1'b0;
                         //mosi <= shift_out[23];
                         phase <= 1'b1;
                     end else begin
                         // high phase
-                        sck   <= 1'b1;
+                        //sck   <= 1'b1;
                         phase <= 1'b0;
 
                         shift_out <= {shift_out[22:0], 1'b0};
@@ -109,11 +109,11 @@ module spi_read_byte (
                 // ------------------------------------------------------
                 ST_RECV: begin
                     if (phase == 1'b0) begin
-                        sck   <= 1'b0;
+                        //sck   <= 1'b0;
                         // mosi  <= 1'b0;  // don't care
                         phase <= 1'b1;
                     end else begin
-                        sck   <= 1'b1;
+                        //sck   <= 1'b1;
                         phase <= 1'b0;
 
                         // sample MISO at rising edge
@@ -131,7 +131,6 @@ module spi_read_byte (
                 // ------------------------------------------------------
                 ST_DONE: begin
                     cs_n  <= 1'b1;
-                    sck   <= 1'b0;
                     busy  <= 1'b0;
                     done  <= 1'b1; // one-cycle pulse
                     state <= ST_IDLE;
@@ -147,7 +146,7 @@ module spi_read_byte (
         if (!rst_n) begin
             sck       <= 1'b0;
             mosi      <= 1'b0;
-            data_out  <= 8'h00; 
+            // data_out  <= 8'h00; 
         end else begin
 
             case (state)
@@ -181,7 +180,6 @@ module spi_read_byte (
                     if (phase == 1'b0) begin
                         sck   <= 1'b0;
                         mosi  <= 1'b0;  // don't care
-                        phase <= 1'b1;
                     end else begin
                         sck   <= 1'b1;
                     end
