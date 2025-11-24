@@ -87,42 +87,64 @@ async def test_spi_protocol_first_transaction(dut):
       - correct use of command 0x03 and address 0x0000
     """
 
+    # Let reset + RAM preload finish
     await wait_for_settle(dut)
 
-    cs   = dut.uio_out[0]
-    mosi = dut.uio_out[1]
-    sck  = dut.uio_out[3]
+    uio = dut.uio_out
 
-    # Wait (up to some cycles) for CS to go low (start of first SPI transaction)
+    # --- Wait for CS to go low (start of first SPI transaction) ---
+
+    cs_low_seen = False
     for _ in range(10_000):
         await RisingEdge(dut.clk)
-        if cs.value.is_resolvable and int(cs.value) == 0:
-            break
-    else:
-        assert False, "spi_cs_n never went low (no SPI transaction observed)"
 
-    # Now CS is low: capture MOSI bits on SCK rising edges
+        val = uio.value
+        if not val.is_resolvable:
+            continue
+
+        cs = int(val[0])  # bit 0 = CS
+        if cs == 0:
+            cs_low_seen = True
+            break
+
+    assert cs_low_seen, "spi_cs_n never went low (no SPI transaction observed)"
+
+    # --- Capture MOSI bits on SCK rising edges while CS is low ---
+
     bits = []
+    max_bits = 32  # cmd(8) + addr(16) + maybe first data(8)
 
-    # We expect: 8 bits command + 16 bits address + 8 bits data = 32 bits.
-    # We only *need* the first 24 bits (command+address) for this test.
-    max_bits = 32
-    for _ in range(max_bits):
-        # Wait for a rising edge on SCK
-        await RisingEdge(sck)
+    last_sck = 0
 
-        # If CS has gone high again, the transaction is over
-        if cs.value.is_resolvable and int(cs.value) == 1:
-            break
+    for _ in range(50_000):  # plenty of cycles to see one transaction
+        await RisingEdge(dut.clk)
 
-        # Sample MOSI bit (Mode 0: data is valid around rising edge)
-        if not mosi.value.is_resolvable:
-            # treat X/Z as 0 for this purpose
-            bits.append(0)
-        else:
-            bits.append(int(mosi.value))
+        val = uio.value
+        if not val.is_resolvable:
+            continue
 
-    # We expect at least command + address = 8 + 16 = 24 bits
+        cs   = int(val[0])  # CS
+        mosi = int(val[1])  # MOSI
+        sck  = int(val[3])  # SCK
+
+        # If CS goes high, the transaction is over
+        if cs == 1:
+            if len(bits) >= 24:
+                break
+            else:
+                # Transaction ended early
+                break
+
+        # Detect SCK rising edge (0 -> 1)
+        if last_sck == 0 and sck == 1:
+            bits.append(mosi)
+            if len(bits) >= max_bits:
+                break
+
+        last_sck = sck
+
+    # --- Check we got at least command+address (24 bits) ---
+
     assert len(bits) >= 24, (
         f"Expected at least 24 bits in first SPI transaction, got {len(bits)}"
     )
