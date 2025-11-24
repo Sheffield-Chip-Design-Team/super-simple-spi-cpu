@@ -6,7 +6,14 @@
 import random
 import cocotb
 from cocotb.triggers import RisingEdge, Timer
-
+async def wait_for_settle(dut, settle_time_ns=5_000):
+    """
+    Wait for tb.v to:
+      - apply reset
+      - preload SPI RAM
+      - release reset and enable the design
+    """
+    await Timer(settle_time_ns, unit="ns")
 @cocotb.test()
 async def test_multiplication_rom(dut):
     """
@@ -66,7 +73,7 @@ async def test_spi_protocol_first_transaction(dut):
 
     From the top level we can see:
 
-      - CS  = uio_out[0]
+      - CS   = uio_out[0]
       - MOSI = uio_out[1]
       - SCK  = uio_out[3]
 
