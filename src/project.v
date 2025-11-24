@@ -62,86 +62,66 @@ module tt_um_example (
     // wire _unused = &{uio_in[7:3], ena, 1'b0};
 
      // SPI master control
-    reg         start;
-    reg         started;
-    wire        busy;
-    wire        done;
-    wire [7:0]  data_out;
+   `default_nettype none
 
-    wire        spi_cs_n;
-    wire        spi_sck;
-    wire        spi_mosi;
-    wire        spi_miso;
-
-    // Address: high byte = 0, low byte from ui_in
-    wire [15:0] addr = {8'h00, ui_in};
-
-    // Start one read after reset
-    always @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            start   <= 1'b0;
-            started <= 1'b0;
-        end else if (ena) begin
-            start <= 1'b0;
-
-            if (!started && !busy) begin
-                start   <= 1'b1;  // single pulse
-                started <= 1'b1;
-            end
-        end
-    end
-
-    // SPI master
-    spi_read_byte spi_if (
-        .clk     (clk),
-        .rst_n   (rst_n),
-        .start   (start),
-        .addr    (addr),
-        .busy    (busy),
-        .done    (done),
-        .data_out(data_out),
-        .cs_n    (spi_cs_n),
-        .sck     (spi_sck),
-        .mosi    (spi_mosi),
-        .miso    (spi_miso)
-    );
-// inside project.v:
-spi_cpu cpu (
-    .clk      (clk),
-    .rst_n    (rst_n),
-    .ena      (ena),
-    .in_port  (ui_in),
-    .out_port (cpu_out),
-    .spi_cs_n (spi_cs_n),
-    .spi_sck  (spi_sck),
-    .spi_mosi (spi_mosi),
-    .spi_miso (spi_miso)
+module tt_um_example (
+    input  wire [7:0] ui_in,
+    output wire [7:0] uo_out,
+    input  wire [7:0] uio_in,
+    output wire [7:0] uio_out,
+    output wire [7:0] uio_oe,
+    input  wire       ena,
+    input  wire       clk,
+    input  wire       rst_n
 );
-    // Map SPI to uio pins:
-    // uio[0] = CS_n (output)
-    // uio[1] = MOSI (output)
-    // uio[2] = MISO (input)
-    // uio[3] = SCK  (output)
 
+    // *** DECLARATIONS ***
+    // This is the one you were missing:
+    wire [7:0] cpu_out;
+
+    // SPI wires between CPU and pins
+    wire spi_cs_n;
+    wire spi_sck;
+    wire spi_mosi;
+    wire spi_miso;
+
+    // CPU instance
+    spi_cpu cpu (
+        .clk      (clk),
+        .rst_n    (rst_n),
+        .ena      (ena),
+        .in_port  (ui_in),
+        .out_port (cpu_out),
+        .spi_cs_n (spi_cs_n),
+        .spi_sck  (spi_sck),
+        .spi_mosi (spi_mosi),
+        .spi_miso (spi_miso)
+    );
+
+    // Map SPI to uio pins
     assign uio_out[0]   = spi_cs_n;
     assign uio_out[1]   = spi_mosi;
     assign uio_out[3]   = spi_sck;
     assign uio_out[2]   = 1'b0;
     assign uio_out[7:4] = 4'b0000;
 
-    assign uio_oe[0]    = 1'b1; // CS_n
+    assign uio_oe[0]    = 1'b1; // CS
     assign uio_oe[1]    = 1'b1; // MOSI
     assign uio_oe[3]    = 1'b1; // SCK
-    assign uio_oe[2]    = 1'b0; // MISO is input
+    assign uio_oe[2]    = 1'b0; // MISO input
     assign uio_oe[7:4]  = 4'b0000;
 
+    // MISO from board / RAM model
     assign spi_miso     = uio_in[2];
 
-    // Show read byte on outputs
-    //assign uo_out       = ena ? data_out : 8'h00;
-    assign uo_out = ena ? (done ? data_out : 8'h00) : 8'h00;
-    // Unused inputs to silence warnings
-    // New version
-    wire _unused = &{uio_in[7:0], ena, 1'b0};
+    // CPU result on main outputs
+    assign uo_out       = ena ? cpu_out : 8'h00;
+
+    // Mark unused bits of uio_in to keep verilator happy
+    wire _unused = &{uio_in[7:3], 1'b0};
 
 endmodule
+
+`default_nettype wire
+
+
