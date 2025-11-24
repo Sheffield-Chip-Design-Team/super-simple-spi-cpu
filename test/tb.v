@@ -114,37 +114,26 @@ module tb ();
       uio_in[2]   = miso;
   end
 
-  // Clock: 20 ns period = 50 MHz
-  always #10 clk = ~clk;
-
   // Program external SPI RAM with the tiny CPU program
-  // Program external SPI RAM with a simple CPU program
+ // Program external SPI RAM with a simple CPU program
   initial begin
-      // Program at addresses 0x0000..0x0003:
-      // 0: LDI 1   (0001_0001)
-      // 1: ADDI 1  (0010_0001)
-      // 2: ADDI 1  (0010_0001) -> A = 3
-      // 3: OUT     (1000_0000) -> uo_out = 3
-      //
-      // No JMP instruction used.
-
-      ram.mem[16'h0000] = 8'b0001_0001; // LDI 1
-      ram.mem[16'h0001] = 8'b0010_0001; // ADDI 1
-      ram.mem[16'h0002] = 8'b0010_0001; // ADDI 1
-      ram.mem[16'h0003] = 8'b1000_0000; // OUT
-
-      // Initial signals
-      clk   = 1'b0;
-      rst_n = 1'b0;
-      ena   = 1'b0;
-      ui_in = 8'h00;
-
-      // Release reset and enable design
-      #50;
-      rst_n = 1'b1;
-      ena   = 1'b1;
-
-      // ui_in is currently unused by CPU, can leave as 0
+      // load a multiplicartion program into ram
+      ram.mem[8'h00] = 8'b0001_0000; // LDB, LDA
+      ram.mem[8'h01] = 8'b0110_0100; // RSH, LDSB
+      ram.mem[8'h02] = 8'b0110_1000; // RSH, SNZ A
+      ram.mem[8'h03] = 8'b0101_0011; // LSH, LDSA
+      ram.mem[8'h04] = 8'b0100_1001; // LDSB, SNZ S
+      ram.mem[8'h05] = 8'b0110_0110; // RSH, RSH
+      ram.mem[8'h06] = 8'b0011_0110; // LDSA, RSH
+      ram.mem[8'h07] = 8'b0101_0101; // LSH, LSH
+      ram.mem[8'h08] = 8'b0100_1001; // LDSB, SNZ S
+      ram.mem[8'h09] = 8'b0110_0110; // RSH, RSH
+      ram.mem[8'h0A] = 8'b0110_0110; // RSH, RSH
+      ram.mem[8'h0B] = 8'b0101_0011; // LSH, LDSA
+      ram.mem[8'h0C] = 8'b0101_0101; // LSH, LSH
+      ram.mem[8'h0D] = 8'b0010_1001; // LDO, SNZ S
+      ram.mem[8'h0E] = 8'b0111_0111; // CLR, CLR
+      ram.mem[8'h0F] = 8'b0111_0111; // CLR, CLR
   end
 
 endmodule

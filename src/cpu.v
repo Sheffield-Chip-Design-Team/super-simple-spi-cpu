@@ -50,7 +50,7 @@ module ExecutionUnit #(
     (* keep *) wire clk_sr   = clk;  // shift register 
     
     // Instruction Decoder
-    // Decodes the opcode from the program rom and outputs the appropriate control signals
+    // Decodes the opcode from the program rom and outputs the appropriate control signalsÃŸ
     InstructionDecoder decoder (
         .instructionIn(opcode),
         .LDA  (_LDA),
@@ -71,11 +71,10 @@ module ExecutionUnit #(
         .INV  (_INV)
     );
 
-
     // Regsiter File 
     // Contains A reg and B reg and O reg
     RegisterFile registerFile (
-        .clk(clk_regs),
+        .clk(clk),
         .reset(reset),
         // split switch input into A and B input
         .AIn(operand[7:4]), 
@@ -94,15 +93,16 @@ module ExecutionUnit #(
 
     // Shifter
     // Register for implimenting shift instructions and storing the results
-    ShiftRegister sr (clk_sr, reset, shiftIn, _LSR, {_LSH,_RSH}, shiftOut, SF);
-
+    ShiftRegister sr (clk, reset, shiftIn, _LSR, {_LSH,_RSH}, shiftOut, SF);
 
     // MUX for addition control flag
 
     ADD_MUX addmux (_ADD, _SNZA,_SNZS, SF, _ADDin);
 
+
     // MUX for ALU inputs , depends on control signals .
     // e.g (SNZA, SNZB, LDSA and LDSB require different inputs.
+
     ALU_MUX alumux (_SNZA, _SNZS, SF ,shiftOut, ACCout, Aout, Bout, in1,in2);
 
     // Arithmetic Logic Unit (combinatorial)
@@ -125,15 +125,12 @@ module ExecutionUnit #(
 
     // Accumulator (ACC)
     // Stores the results of Arithmetic or Logical operations
-    ResetEnableDFF ACC (clk_regs, _CLR || reset, enableACC , aluOut, ACCout); 
+    ResetEnableDFF ACC (clk, _CLR || reset, enableACC , aluOut, ACCout); 
     defparam ACC.DATA_WIDTH = OUTPUT_DATA_WIDTH;
 
     // CPU Output
-    always @(posedge clk) begin
-      if (start) begin
-        cpuOut <= Oout;
-      end
+    always @(*) begin
+        cpuOut = Oout;
     end
-
 endmodule
-`default_nettype wire
+

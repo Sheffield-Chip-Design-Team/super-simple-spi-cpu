@@ -71,14 +71,17 @@ module spi_wrap (
         if (!rst_n) begin
             state    <= S_RESET;
             spi_start <= 1'b0;
+            cpu_start <= 1'b0;
             pc        <= 0;
+            opcode1   <= 4'b0111;
+            opcode2   <= 4'b0111;
+            curr_opcode <= 4'b0111;
         end 
         
         else begin
             // default each cycle
             spi_start   <= 1'b0;
             cpu_start   <= 1'b0;
-            cpu_valid   <= 1'b0;
             case (state)
                 
                 S_RESET: begin
@@ -108,7 +111,6 @@ module spi_wrap (
                     cpu_start   <= 1'b1; 
                     curr_opcode <= opcode1;
                     state       <= S_EXECUTE_2;
-                    cpu_valid   <= 1'b1;
                 end
 
                 // Execute second opcode
@@ -118,18 +120,25 @@ module spi_wrap (
                     // increment the pc
                     pc          <= pc + 1;
                     state       <= S_FETCH_START;
-                    cpu_valid   <= 1'b1;
                 end
-
+                
                 default: state <= S_RESET;
             endcase
         end
     end
 
+    always @(posedge clk) begin
+        if (!rst_n) begin
+           cpu_valid <= 0;
+        end 
+
+        cpu_valid <= cpu_start;
+    end
+
     ExecutionUnit core (
         .clk(clk),
         .reset(!rst_n),
-        .start(valid),
+        .start(cpu_valid),
         .opcode(curr_opcode),
         .operand(in_port),
         .cpuOut(out_port)

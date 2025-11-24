@@ -134,17 +134,28 @@
 
 import cocotb
 from cocotb.triggers import RisingEdge, Timer
+from cocotb.clock import Clock
 
 
 @cocotb.test()
 async def test_project(dut):
     """
-    Top-level system sanity test for tt_um_spi_cpu.
-
-    We don't assume any particular program is executed from external SPI RAM.
-    We only check that after reset is released and the design runs for a while,
-    uo_out settles to a valid (0/1-only) value and equals 0.
+    Run the SPI-based tiny CPU for a bit and check that it outputs 3 on uo_out.
     """
+    dut.rst_n.value = 1
+
+    # generate clk
+    clk = Clock(dut.clk, 1, "ns")
+    cocotb.start_soon(clk.start(True)) 
+
+    await RisingEdge(dut.clk)
+    dut.rst_n.value = 0
+    await RisingEdge(dut.clk)
+    dut.rst_n.value = 1
+
+
+    print ("ahhhhh")
+    dut.ui_in.value = dut.ui_in.value = 0b0011_0010
 
     # tb.v generates the clock and drives rst_n, ena, ui_in, uio_in.
     # We must not drive them here.
