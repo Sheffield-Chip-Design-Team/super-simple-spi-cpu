@@ -31,7 +31,7 @@ module spi_wrap (
     // Instruction fetch address mapping:
     // here we just map PC to low bits of the address (0x0000..0x000F)
     always @* begin
-        spi_addr = {8'h00, pc};  // 0x0000 + PC
+        spi_addr = {4'h00, pc};  // 0x0000 + PC
     end
 
     spi_read_byte spi_if (
