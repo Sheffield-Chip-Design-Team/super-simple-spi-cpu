@@ -19,9 +19,9 @@ project:
   source_files:
     - "tt_um_spi_cpu.v"
     - "spi_wrap.v"
+    - "Control.v"
     - "spi_read_byte.v"
     - "Registers.v"
-    - "Control.v"
     - "ALU.v"
     - "cpu.v"
     # - "spi_ram_model.v"

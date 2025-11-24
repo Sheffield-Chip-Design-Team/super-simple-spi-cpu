@@ -1,27 +1,5 @@
 // Control Modules
 
-// Clock divider module to lower clock frequency
-
-module clkDiv(
-    input wire CLKin,
-    output wire CLKout
-);
-    
-    parameter COUNTER_SIZE = 64; 
-    parameter COUNTER_TARGET = 1;
-
-    reg[COUNTER_SIZE - 1:0] counter = 0;
-
-    always @(posedge CLKin) begin
-        counter <= counter  + 1;
-    end
-
-   // Output frequency = f(CLKin) / log2(COUNTER_TARGET - 1)
-   assign CLKout = counter[COUNTER_TARGET];
-
-endmodule
-
-
 // Instruction Decoder to map opcodes to control signals.
 // barrell shifter - mux / smallest design 
 // decoder based
@@ -48,7 +26,6 @@ module InstructionDecoder(
     // 1-hot control signal encoding
     reg [15:0] ControlSignals; 
     reg NOP;
-
         
     always @(*) begin // decoder based MUX hopefully smaller than shifter based reg
         
@@ -77,35 +54,7 @@ module InstructionDecoder(
 
 endmodule
 
-module InstructionDecoder_BarrelShift( 
-    input  [3:0] instructionIn,
-    output  LDA,
-    output  LDB,
-    output  LDO,
-    output  LDSA,
-    output  LDSB,
-    output  LSH,
-    output  RSH,
-    output  CLR,
-    output  SNZA,
-    output  SNZS,
-    output  ADD,
-    output  SUB,
-    output  AND,
-    output  OR,
-    output  XOR,
-    output  INV
-);
-    // 1-hot control signal encoding
-    reg [15:0] ControlSignals; 
-    reg NOP;
-
-    assign {LDA,LDB,LDO,LDSA,LDSB,LSH,RSH,CLR,SNZA,SNZS,ADD,SUB,AND,OR,XOR,INV} = 1 << instructionIn;
-
-endmodule
-
 // Multiplexers
-
 module SR_MUX (
     input wire       _LDSA,
     input wire       _LDSB,
