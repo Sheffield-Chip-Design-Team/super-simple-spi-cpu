@@ -103,18 +103,31 @@ async def test_project(dut):
     No jump instruction is used.
     """
 
-    # Let the Verilog tb initial block assert reset, preload RAM, etc.
-    # Wait for reset to be released (~50 ns in tb.v) plus some margin.
-    await Timer(200, units="ns")
+    # IMPORTANT:
+    # - tb.v generates the clock (always #10 clk = ~clk)
+    # - tb.v drives rst_n, ena, ui_in, uio_in and preloads RAM
+    # So we DO NOT drive those from Python, to avoid Xes from multiple drivers.
+
+    # Wait for tb.v to:
+    #   - run its initial block (50 ns reset, program load, then ena=1,rst_n=1)
+    #   - give the CPU some time to fetch/execute instructions
+    await Timer(500, unit="ns")
 
     expected = 3
-    got = int(dut.uo_out.value)
+    got = None
 
-    # Run up to 2000 clock cycles, watching for uo_out == 3
+    # Run up to N clock cycles, watching for uo_out == 3
     for _ in range(2000):
         await RisingEdge(dut.clk)
-        got = int(dut.uo_out.value)
+
+        val = dut.uo_out.value
+
+        # Skip cycles where uo_out still has X/Z bits
+        if not val.is_resolvable:
+            continue
+
+        got = int(val)
         if got == expected:
             break
 
-    assert got == expected, f"Expected {expected}, got {got}"
+    assert got == expected, f"Expected {expected}, got {got if got is not None else 'unresolved'}"
