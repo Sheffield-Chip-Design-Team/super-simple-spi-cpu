@@ -48,9 +48,9 @@ module tt_um_spi_cpu_top (
 
     // Map SPI to uio pins
     assign uio_out[0]   = spi_cs_n;
+    assign uio_out[2]   = 1'b0;
     assign uio_out[1]   = spi_mosi;
     assign uio_out[3]   = spi_sck;
-    assign uio_out[2]   = 1'b0;
     assign uio_out[6:4] = 3'b000;
 
     assign uio_oe[0]    = 1'b1; // CS
