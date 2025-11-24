@@ -9,12 +9,12 @@ You can also include images in this folder and reference them in the markdown. E
 
 ## How it works
 
-Explain how your project works
+The Super-Simple-SPI-CPU has uses the emulated RP40-RAM to make load and run programs.
 
 ## How to test
 
-Explain how to use your project
+Use the ram flasher app to load a program into the ram and then reset the CPU.
 
 ## External hardware
 
-List external hardware used in your project (e.g. PMOD, LED display, etc), if any
+Ram Flasher.
