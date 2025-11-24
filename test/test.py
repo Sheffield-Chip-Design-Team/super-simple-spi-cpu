@@ -129,3 +129,20 @@ async def test_spi_activity(dut):
     assert mosi_changes_while_cs_low > 0, (
         "SPI: MOSI (uio_out[1]) never changed while CS_n was low"
     )
+    
+@cocotb.test()
+async def test_multiplication_full_exhaustive(dut):
+    await wait_for_settle(dut)
+    cycles_per_op = 2000
+
+    for A in range(16):
+        for B in range(16):
+            dut.ui_in.value = (A << 4) | B
+            for _ in range(cycles_per_op):
+                await RisingEdge(dut.clk)
+
+            val = dut.uo_out.value
+            assert val.is_resolvable, f"uo_out X/Z for A={A}, B={B}: {val}"
+            got = int(val)
+            expected = A * B
+            assert got == expected, f"A={A}, B={B}: expected {expected}, got {got}"
