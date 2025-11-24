@@ -54,9 +54,9 @@
 
 module tb ();
 
-  // Dump the signals to a FST file. You can view it with gtkwave or surfer.
+  // Dump the signals to an FST file (CI expects tb.fst)
   initial begin
-    $dumpfile("tb.fst");    // <<< important name for CI
+    $dumpfile("tb.fst");
     $dumpvars(0, tb);
     #1;
   end
@@ -77,7 +77,7 @@ module tb ();
   wire VGND = 1'b0;
 `endif
 
-  // DUT: your TinyTapeout top
+  // DUT: your TinyTapeout top (CPU wrapper) in src/project.v
   tt_um_example user_project (
 `ifdef GL_TEST
       .VPWR(VPWR),
@@ -117,10 +117,20 @@ module tb ();
   // Clock: 20 ns period = 50 MHz
   always #10 clk = ~clk;
 
-  // Preload RAM and drive stimulus
+  // Program external SPI RAM with the tiny CPU program
   initial begin
-      // Preload mem[0x12] = 0xA5
-      ram.mem[8'h12] = 8'hA5;
+      // Program at addresses 0x0000..0x0004:
+      // 0: LDI 1   (0001_0001)
+      // 1: ADDI 1  (0010_0001)
+      // 2: ADDI 1  (0010_0001)
+      // 3: OUT     (1000_0000)
+      // 4: JMP 3   (0110_0011)
+
+      ram.mem[16'h0000] = 8'b0001_0001; // LDI 1
+      ram.mem[16'h0001] = 8'b0010_0001; // ADDI 1
+      ram.mem[16'h0002] = 8'b0010_0001; // ADDI 1
+      ram.mem[16'h0003] = 8'b1000_0000; // OUT
+      ram.mem[16'h0004] = 8'b0110_0011; // JMP 3
 
       // Initial signals
       clk   = 1'b0;
@@ -133,25 +143,7 @@ module tb ();
       rst_n = 1'b1;
       ena   = 1'b1;
 
-      // Set address we want to read: 0x12
-      ui_in = 8'h12;
-
-      // Wait for internal SPI read to finish
-      // spi_if is the instance name inside tt_um_example:
-      //   spi_read_byte spi_if ( ... );
-      wait (user_project.spi_if.done == 1'b1);
-
-      // Give a little time for uo_out to update
-      #40;
-
-      if (uo_out == 8'hA5) begin
-          $display("PASS: tt_um_example read 0x%02X from addr 0x%02X", uo_out, ui_in);
-      end else begin
-          $display("FAIL: Expected 0xA5, got 0x%02X", uo_out);
-      end
-
-      #100;
-      $finish;
+      // ui_in is currently unused by CPU, can leave as 0
   end
 
 endmodule
