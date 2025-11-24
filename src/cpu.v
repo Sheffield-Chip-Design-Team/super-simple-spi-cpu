@@ -1,6 +1,10 @@
+`default_nettype none
 
-
-module ExecutionUnit (
+module ExecutionUnit #(
+    parameter ROM_ADDRESS_WIDTH = 5,
+    parameter INPUT_DATA_WIDTH  = 4,
+    parameter OUTPUT_DATA_WIDTH = 8
+)(
   input wire                          clk,
   input wire [INPUT_DATA_WIDTH*2-1:0] pc,
   input wire                          reset,
@@ -10,9 +14,9 @@ module ExecutionUnit (
   output reg [OUTPUT_DATA_WIDTH-1:0]  cpuOut
 );
 
-    parameter ROM_ADDRESS_WIDTH = 5;
-    parameter INPUT_DATA_WIDTH = 4;
-    parameter OUTPUT_DATA_WIDTH = 8;
+    // parameter ROM_ADDRESS_WIDTH = 5;
+    // parameter INPUT_DATA_WIDTH = 4;
+    // parameter OUTPUT_DATA_WIDTH = 8;
 
     wire [ROM_ADDRESS_WIDTH-1:0] PCin;   // Next address to be decoded
     wire [ROM_ADDRESS_WIDTH-1:0] PCout;  // Current address being decoded
@@ -140,4 +144,4 @@ module ExecutionUnit (
     end
 
 endmodule
-
+`default_nettype wire
