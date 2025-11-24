@@ -125,10 +125,10 @@ module ExecutionUnit #(
     // Accumulator (ACC)
     // Stores the results of Arithmetic or Logical operations
     defparam ACC.DATA_WIDTH = OUTPUT_DATA_WIDTH;
-    ResetEnableDFF ACC (clk, _CLR || reset, (enableACC) , aluOut, ACCout); 
+    ResetEnableDFF ACC (clk_regs, _CLR || reset, (enableACC) , aluOut, ACCout); 
 
     // CPU Output
-    always @(posedge clk) begin
+    always @(posedge clk_regs) begin
       if (start) begin
         cpuOut = Oout;
       end
