@@ -149,8 +149,6 @@ module spi_read_byte (
             mosi      <= 1'b0;
             data_out  <= 8'h00; 
         end else begin
-            // default
-            done <= 1'b0;
 
             case (state)
                 // ------------------------------------------------------
@@ -194,7 +192,6 @@ module spi_read_byte (
                     sck   <= 1'b0;
                 end
 
-                default: state <= ST_IDLE;
             endcase
         end
     end
