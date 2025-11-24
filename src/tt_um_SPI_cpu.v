@@ -51,13 +51,13 @@ module tt_um_spi_cpu_top (
     assign uio_out[1]   = spi_mosi;
     assign uio_out[3]   = spi_sck;
     assign uio_out[2]   = 1'b0;
-    assign uio_out[6:4] = 4'b000;
+    assign uio_out[6:4] = 3'b000;
 
     assign uio_oe[0]    = 1'b1; // CS
     assign uio_oe[1]    = 1'b1; // MOSI
     assign uio_oe[3]    = 1'b1; // SCK
     assign uio_oe[2]    = 1'b0; // MISO input
-    assign uio_oe[7:4]  = 4'b0000;
+    assign uio_oe[7:4]  = 3'b1000;
 
     // CPU result on main outputs
    // assign uo_out  = ena ? cpu_out : 8'h00; // use ena
