@@ -26,33 +26,35 @@ async def test_multiplication_rom(dut):
     # So here we just wait for that to complete.
     await Timer(5_000, unit="ns")  # 5 us for safety
 
-    # Now exercise all 4×4 combinations
-    for A in range(4):
-        for B in range(4):
-            # Present operands on ui_in: [A (high nibble), B (low nibble)]
-            dut.ui_in.value = (A << 4) | B
+    # Now exercise 10, random combinations
+    for test in range(10):  # 0..99
+       
+        A = random.randint(0, 15)
+        B = random.randint(0, 15)
+        # Present operands on ui_in: [A (high nibble), B (low nibble)]
+        dut.ui_in.value = (A << 4) | B
 
-            # Give the CPU time to: this is in tb.v
-            #   - fetch micro-ops over SPI
-            #   - run the microprogram
-            #   - write result to out_port / uo_out
-            #
-            # 50_000 cycles at 50 MHz = 1ms plenty for this tiny core.
-            for _ in range(50_000):
-                await RisingEdge(dut.clk)
+        # Give the CPU time to: this is in tb.v
+        #   - fetch micro-ops over SPI
+        #   - run the microprogram
+        #   - write result to out_port / uo_out
+        #
+        # 50_000 cycles at 50 MHz = 1ms plenty for this tiny core.
+        for _ in range(50_000):
+            await RisingEdge(dut.clk)
 
-            val = dut.uo_out.value
+        val = dut.uo_out.value
 
-            # Make sure the result is fully 0/1 (no X/Z)
-            assert val.is_resolvable, (
-                f"uo_out has X/Z for A={A}, B={B}: {val}"
-            )
+        # Make sure the result is fully 0/1 (no X/Z)
+        assert val.is_resolvable, (
+            f"uo_out has X/Z for A={A}, B={B}: {val}"
+        )
 
-            got = int(val)
-            expected = A * B
+        got = int(val)
+        expected = A * B
 
-            assert got == expected, (
-                f"For A={A}, B={B} expected {expected}, got {got}"
-            )
+        assert got == expected, (
+            f"For A={A}, B={B} expected {expected}, got {got}"
+        )
 
-            print (f"{A} x {B} = {got} (as expected) :D")
+        print (f"{A} x {B} = {got} (as expected) :D")
