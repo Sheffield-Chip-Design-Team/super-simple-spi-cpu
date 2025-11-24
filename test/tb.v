@@ -101,6 +101,7 @@ module tb ();
   wire miso;
   wire valid = uo_out[7];
 
+  always #10 clk = ~clk;
   // Behavioural SPI RAM model (READ 0x03 only)
   spi_ram_model #(.MEM_BYTES(256)) ram (
       .cs_n (cs_n),
