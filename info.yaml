@@ -21,6 +21,8 @@ project:
     - "spi_wrap.v"
     - "spi_read_byte.v"
     - "cpu.v"
+    - "ALU.v"
+    - "Control.v"
     # - "spi_ram_model.v"
 
 # The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
