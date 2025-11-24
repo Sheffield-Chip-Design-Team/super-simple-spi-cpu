@@ -17,14 +17,7 @@ async def test_multiplication_rom(dut):
       - ui_in[3:0] = B
     After the CPU runs the microprogram, uo_out should equal A * B.
     """
-    dut.rst_n.value = 1
 
-
-
-    await RisingEdge(dut.clk)
-    dut.rst_n.value = 0
-    await RisingEdge(dut.clk)
-    dut.rst_n.value = 1
     # tb.v:
     #   - generates the clock (always #10 clk = ~clk)
     #   - holds reset low for 50 ns, then releases it and sets ena=1
