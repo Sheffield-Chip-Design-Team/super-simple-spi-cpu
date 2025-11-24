@@ -137,7 +137,7 @@ module spi_wrap (
     ExecutionUnit core (
         .clk(clk),
         .reset(!rst_n),
-        .start(cpu_valid),
+        .start(cpu_start),
         .opcode(curr_opcode),
         .operand(in_port),
         .cpuOut(out_port)
