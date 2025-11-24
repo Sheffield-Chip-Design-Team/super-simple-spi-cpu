@@ -183,7 +183,7 @@ async def test_project(dut):
     """
 
     # tb.v:
-    #   - generates the clock
+    #   - generates the clock (always #10 clk = ~clk)
     #   - holds reset low for 50 ns, then releases it and sets ena=1
     #   - programs the SPI RAM with the multiplication microcode
     #
@@ -196,13 +196,13 @@ async def test_project(dut):
             # Present operands on ui_in: [A (high nibble), B (low nibble)]
             dut.ui_in.value = (A << 4) | B
 
-            # Give the CPU time to:
+            # Give the CPU time to: this is in tb.v
             #   - fetch micro-ops over SPI
             #   - run the microprogram
             #   - write result to out_port / uo_out
             #
-            # 10_000 cycles at 50 MHz = 200 us; plenty for this tiny core.
-            for _ in range(10_000):
+            # 5_000 cycles at 50 MHz = 100 us; plenty for this tiny core.
+            for _ in range(5_000):
                 await RisingEdge(dut.clk)
 
             val = dut.uo_out.value
@@ -218,4 +218,3 @@ async def test_project(dut):
             assert got == expected, (
                 f"For A={A}, B={B} expected {expected}, got {got}"
             )
-
