@@ -78,7 +78,7 @@ module tb ();
 `endif
 
 // DUT: your TinyTapeout top
-  tt_um_spi_cpu user_project (
+  tt_um_spi_cpu_top user_project (
 `ifdef GL_TEST
       .VPWR(VPWR),
       .VGND(VGND),
