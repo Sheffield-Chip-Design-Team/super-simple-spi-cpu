@@ -62,18 +62,6 @@ module tt_um_example (
     // wire _unused = &{uio_in[7:3], ena, 1'b0};
 
      // SPI master control
-   `default_nettype none
-
-module tt_um_example (
-    input  wire [7:0] ui_in,
-    output wire [7:0] uo_out,
-    input  wire [7:0] uio_in,
-    output wire [7:0] uio_out,
-    output wire [7:0] uio_oe,
-    input  wire       ena,
-    input  wire       clk,
-    input  wire       rst_n
-);
 
     // *** DECLARATIONS ***
     // This is the one you were missing:
