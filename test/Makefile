@@ -6,7 +6,7 @@ SIM ?= icarus
 FST ?= -fst # Use more efficient FST format
 TOPLEVEL_LANG ?= verilog
 SRC_DIR = $(PWD)/../src
-PROJECT_SOURCES = project.v spi_ram_model.v spi_read_byte.v spi_cpu.v
+PROJECT_SOURCES = project.v spi_cpu.v spi_ram_model.v spi_read_byte.v 
 
 ifneq ($(GATES),yes)
 
@@ -36,7 +36,7 @@ COMPILE_ARGS 		+= -I$(SRC_DIR)
 
 # Include the testbench sources:
 VERILOG_SOURCES += $(PWD)/tb.v
-TOPLEVEL = tb tb_spi_read_byte.v
+TOPLEVEL = tb tb_spi_read_byte.v tb_tt_um_spi_example.v
 
 # List test modules to run, separated by commas and without the .py suffix:
 COCOTB_TEST_MODULES = test
