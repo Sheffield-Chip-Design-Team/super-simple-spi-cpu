@@ -119,6 +119,11 @@ module tb ();
  // Program external SPI RAM with a simple CPU program
   initial begin
 
+     // Reset / initial state
+      clk   = 1'b0;
+      rst_n = 1'b0;
+      ena   = 1'b0;
+      ui_in = 8'h00;
       // ram.mem[8'h00] = 8'b0001_0000; // LDB, LDA
       // ram.mem[8'h01] = 8'b0010_1010; // LDO, ADD
       // ram.mem[8'h02] = 8'b0010_1011; // LDO, SUB
