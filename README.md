@@ -1,7 +1,7 @@
 ![](../../workflows/gds/badge.svg) ![](../../workflows/docs/badge.svg) ![](../../workflows/test/badge.svg) ![](../../workflows/fpga/badge.svg)
 
 # Super-Simple-SPI-CPU
-Named Aeolus CPU Core ## Authors: James Ashie Kotey, Bowen Shi, and Mohammad Eissa
+Aeolus CPU Core; Authors: James Ashie Kotey, Bowen Shi, and Mohammad Eissa
 
 This repository contains a tiny **4‑bit microcoded CPU** designed for **TinyTapeout (GF180MCU)** that fetches its program over **SPI** from external memory (e.g. an RP2040 emulating 23LC512‑style RAM). The demo configuration runs a microcoded **4×4‑bit → 8‑bit multiplier**, mapping the TinyTapeout pins as:
 
