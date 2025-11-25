@@ -1,6 +1,6 @@
 # TinyTapeout SPI Microcoded CPU
 
-A tiny **4-bit microcoded CPU** for **TinyTapeout (GF180)** that executes its program out of **external SPI RAM** (e.g. an RP2040 emulating a 23LC512-style memory).
+A tiny **4-bit microcoded CPU** for **TinyTapeout (GF180MCU)** that executes its program out of **external SPI RAM** (e.g. an RP2040 emulating a 23LC512-style memory).
 
 The demo design implements a **4×4-bit → 8-bit hardware multiplier** as its “firmware”:
 
