@@ -5,21 +5,19 @@ Aeolus CPU Core; Authors: James Ashie Kotey, Bowen Shi, and Mohammad Eissa
 
 This repository contains a tiny **4‑bit microcoded CPU** designed for **TinyTapeout (GF180MCU)** that fetches its program over **SPI** from external memory (e.g. an RP2040 emulating 23LC512‑style RAM). The demo configuration runs a microcoded **4×4‑bit → 8‑bit multiplier**, mapping the TinyTapeout pins as:
 
-- `ui_in[7:4]` → operand **A** (4‑bit)
-- `ui_in[3:0]` → operand **B** (4‑bit)
-- `uo_out[7:0]` → **A × B** (8‑bit result)
+- `ui_in[7:4]`  → operand **A** (4‑bit)
+- `ui_in[3:0]`  → operand **B** (4‑bit)
+- `uo_out[7:0]` → O Register (8-bits)
 
 At a glance, this project showcases:
 
-- A compact **microcoded datapath** (register file, ALU, shift register, accumulator)
+- A compact **single-cycle datapath** (register file, ALU, shift register, accumulator)
 - An instruction stream fetched from **external SPI memory**
 - A complete **TinyTapeout‑ready top level** with tests and simulation setup
 
-If you’re interested in TinyTapeout, open hardware, or learning how to build a simple CPU that boots from SPI, this repo is meant to be an approachable starting point.
-
 ---
 
-## Quick start
+## Quick start - running the Tests
 
 - Clone the repo and install the simulation dependencies (Python, cocotb, Icarus Verilog).
 - From the `test/` directory, run:
