@@ -1,8 +1,8 @@
 # TinyTapeout SPI Microcoded CPU
 
-A tiny **4-bit microcoded CPU** for **TinyTapeout (GF180MCU)** that executes its program out of **external SPI RAM** (e.g. an RP2040 emulating a 23LC512-style memory).
+A tiny **4-bit CPU** for **TinyTapeout (GF180MCU)** that executes its program out of **external SPI RAM** (e.g. an RP2040 emulating a 23LC512-style memory).
 
-The demo design implements a **4×4-bit → 8-bit hardware multiplier** as its “firmware”:
+The demo program implements a **4×4-bit → 8-bit software multiplier** as its “firmware”:
 
 - `ui_in[7:4] = A` (4-bit)
 - `ui_in[3:0] = B` (4-bit)
@@ -11,7 +11,7 @@ The demo design implements a **4×4-bit → 8-bit hardware multiplier** as its �
 The project is intended to be:
 
 - easy to read and hack on,
-- a reference for **microcoded datapaths** in HDL, and
+- a reference for a **microcoded datapaths** for the MUL instruction in HDL, and,
 - a real, tapeout-ready TinyTapeout design that talks to **external SPI memory**.
 
 ---
@@ -32,8 +32,12 @@ The design has three main parts:
    - A **byte-oriented SPI engine** (`spi_read_byte`)
    - The **ExecutionUnit** (datapath/ALU)
 
-3. **ExecutionUnit datapath**:  
+3. **ExecutionUnit datapath**:
+
+<img width="512" height="281" alt="image" src="https://github.com/user-attachments/assets/7cab03ef-5990-4d6d-9650-70eea4134f96" />
+
    `ExecutionUnit` (in `cpu.v`)  
+   Based on the Aeolus CPU Core.
    Glue of:
    - Register file (A, B, O)
    - Shift register + flag
@@ -177,15 +181,15 @@ Internally:
   4:  LDSB  (load shift reg from B)
   5:  LSH   (shift left)
   6:  RSH   (shift right)
-  7:  CLR   (clear)
-  8:  SNZA  (skip-next-if-zero A/SF)
-  9:  SNZS  (skip-next-if-zero shift flag)
-  10: ADD
-  11: SUB
-  12: AND
-  13: OR
-  14: XOR
-  15: INV
+  7:  CLR   (clear accumulator)
+  8:  SNZA  (add the value of the A Reg to the Accumulator if the shift overflow flag is set)
+  9:  SNZS  (add the value of the A Reg to the Accumulator if the shift overflow flag is set)
+  10: ADD   (A + B)
+  11: SUB   (A - B)
+  12: AND   (A & B)
+  13: OR    (A | B)
+  14: XOR   (A ^ B)
+  15: INV   (~A)
   ```
 
 - **ALU** (`ALU.v`):
@@ -233,13 +237,12 @@ All tests live in the `test/` directory and use **cocotb + Icarus Verilog**.
 
 - Python 3.11 (or compatible)
 - `cocotb`
-- `cocotb-test` / `cocotb-tools` (depending on your setup)
 - Icarus Verilog (`iverilog`, `vvp`)
 
 TinyTapeout’s GitHub template CI already installs these for you; locally you can do something like:
 
 ```sh
-pip install cocotb cocotb-test
+pip install cocotb 
 sudo apt install iverilog
 ```
 
@@ -250,7 +253,7 @@ From the `test/` directory:
 ```sh
 cd test
 rm -f results.xml
-make -B results.xml
+make -B 
 ```
 
 This will:
