@@ -381,7 +381,7 @@ Because the core is microcoded, you can experiment with:
 
 ## Project structure
 
-A typical repository layout:
+Repository tree:
 
 ```text
 .
